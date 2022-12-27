@@ -1,0 +1,162 @@
+[gd_scene load_steps=2 format=3 uid="uid://c06u82ov4p65c"]
+
+[ext_resource type="Script" path="res://duckingtest.gd" id="1_y15ba"]
+
+[node name="duckingtest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_y15ba")
+
+[node name="SoundList" type="ItemList" parent="."]
+layout_mode = 0
+
+[node name="Button" type="Button" parent="SoundList"]
+layout_mode = 0
+
+[node name="MusicButtons" type="GridContainer" parent="."]
+layout_mode = 0
+offset_left = 740.0
+offset_top = 51.0
+offset_right = 1062.0
+offset_bottom = 184.0
+columns = 3
+
+[node name="green-1" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Green 1"
+
+[node name="red-1" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Red 1"
+
+[node name="blue-1" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Blue 1"
+
+[node name="green-2" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Green 2"
+
+[node name="red-2" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Red 2"
+
+[node name="blue-2" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Blue 2"
+
+[node name="green-3" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Green 3"
+
+[node name="red-3" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Red 3"
+
+[node name="blue-3" type="Button" parent="MusicButtons"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Blue 3"
+
+[node name="Settings" type="GridContainer" parent="."]
+layout_mode = 0
+offset_left = 741.0
+offset_top = 312.0
+offset_right = 917.0
+offset_bottom = 483.0
+columns = 2
+
+[node name="Label" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Delay"
+
+[node name="delay" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "0.05"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Label3" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Attack"
+
+[node name="attack" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "1"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Label2" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Attenuation"
+
+[node name="attenuation" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "8.5"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Label4" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Release Point"
+
+[node name="release_point" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "8.5"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Label5" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Release "
+
+[node name="release" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "8.5"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Files" type="GridContainer" parent="."]
+layout_mode = 0
+offset_left = 43.0
+offset_top = 471.0
+offset_right = 83.0
+offset_bottom = 511.0
+columns = 2
+
+[node name="Label" type="Label" parent="Files"]
+layout_mode = 2
+text = "Source Folder"
+
+[node name="SourceFolder" type="Button" parent="Files"]
+layout_mode = 2
+text = "None"
+
+[node name="Label2" type="Label" parent="Files"]
+layout_mode = 2
+text = "Data File"
+
+[node name="DataFile" type="Button" parent="Files"]
+layout_mode = 2
+text = "None"
