@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 SoundPlayer="*res://SoundPlayer.tscn"
 
+[display]
+
+window/stretch/mode="canvas_items"
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

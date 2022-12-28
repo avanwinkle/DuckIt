@@ -246,14 +246,26 @@ func play(filename: String, track: String, settings: Dictionary = {}, is_absolut
       if FileAccess.file_exists(filepath):
           var file = FileAccess.open(filepath, FileAccess.READ)
           var buffer = file.get_buffer(file.get_length())
-          var stream = AudioStreamWAV.new()
+          var stream
+          if filepath.ends_with(".wav"):
+            stream = AudioStreamWAV.new()
+            stream.data = buffer
+            stream.format = 1 # 16 bit
+            stream.mix_rate = 48000
+            stream.stereo = false
+          elif filepath.ends_with(".ogg"):
+            stream = AudioStreamOggVorbis.new()
+            var data = OggPacketSequence.new()
+            data.packet_data = buffer
+            stream.packet_sequence = data
+          elif filepath.ends_with(".mp3"):
+            stream = AudioStreamMP3.new()
+          else:
+            print("Error opening file '%s': unknown audio type" % filepath)
           #for i in 200:
           #    buffer.remove(buffer.size()-1) # removes pop sound at the end
           #    buffer.remove(0)
-          stream.data = buffer
-          stream.format = 1 # 16 bit
-          stream.mix_rate = 48000
-          stream.stereo = false
+
           available_channel.stream = stream  
       else:
           print("Unable to open file at path %s" % filename)
