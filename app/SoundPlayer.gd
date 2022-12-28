@@ -9,7 +9,7 @@ extends Node
 @onready var _sfx_1: AudioStreamPlayer = $Channels/SFX1
 @onready var _sfx_2: AudioStreamPlayer = $Channels/SFX2
 @onready var _sfx_3: AudioStreamPlayer = $Channels/SFX3
-@onready var MusicDuck: = get_tree().create_tween()
+@onready var MusicDuck: Tween
 
 @onready var SFX_TRACKS: = [_sfx_1, _sfx_2, _sfx_3]
 @onready var MUSIC_TRACKS: = [_music_1, _music_2]
@@ -112,7 +112,7 @@ func _process(_delta) -> void:
           main_reduced_db = -1.8
         if main_reduced_db:
           var tween = get_tree().create_tween()
-          tween.connect("tween_completed", self._on_fade_complete.bind(_music_loop_channel, null, tween, "play"))
+          tween.finished.connect(self._on_fade_complete.bind(_music_loop_channel, null, tween, "play"))
           tween.tween_property(_music_loop_channel, "volume_db", main_reduced_db, 3.0).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
           #$Tweens.add_child(tween)
           tween.play()
@@ -142,9 +142,9 @@ func on_sounds_play(s: Dictionary) -> void:
       return
     self.play(file, track, settings)
 
-func play(filename: String, track: String, settings: Dictionary = {}) -> void:
+func play(filename: String, track: String, settings: Dictionary = {}, is_absolute_path = false) -> void:
   #self.logger.debug("play called for %s on %s with settings %s" % [filename, track, settings])
-  var filepath = "res://assets/%s/%s" % ["voice" if track == "callout" else track, filename]
+  var filepath = filename if is_absolute_path else "res://assets/%s/%s" % ["voice" if track == "callout" else track, filename]
   var available_channel: AudioStreamPlayer
   var do_queue_music := false
   settings["track"] = track
@@ -240,7 +240,23 @@ func play(filename: String, track: String, settings: Dictionary = {}) -> void:
         target_queue.append(self._generate_queue_item(filename, max_queue_time, settings))
     return
   if not available_channel.stream:
-    available_channel.stream = load(filepath)
+    if not is_absolute_path:
+      available_channel.stream = load(filepath)
+    else:
+      if FileAccess.file_exists(filepath):
+          var file = FileAccess.open(filepath, FileAccess.READ)
+          var buffer = file.get_buffer(file.get_length())
+          var stream = AudioStreamWAV.new()
+          #for i in 200:
+          #    buffer.remove(buffer.size()-1) # removes pop sound at the end
+          #    buffer.remove(0)
+          stream.data = buffer
+          stream.format = 1 # 16 bit
+          stream.mix_rate = 48000
+          stream.stereo = false
+          available_channel.stream = stream  
+      else:
+          print("Unable to open file at path %s" % filename)
   self._play(available_channel, settings)
 
 func _play(channel: AudioStreamPlayer, settings: Dictionary) -> void:
@@ -293,7 +309,7 @@ func _play(channel: AudioStreamPlayer, settings: Dictionary) -> void:
     channel.play(start_at)
   var tween = get_tree().create_tween()
   tween.tween_property(channel, "volume_db", 0.0, fade_in).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
-  tween.connect("tween_completed", self._on_fade_complete.bind(channel, null, tween, "play"))
+  tween.finished.connect(self._on_fade_complete.bind(channel, null, tween, "play"))
   tween.play()
   channel.set_meta("tween", tween)
 
@@ -335,7 +351,7 @@ func _stop(channel: AudioStreamPlayer, settings: Dictionary, action: String = "s
     return
   var tween = get_tree().create_tween()
   tween.tween_property(channel, "volume_db", -80.0, settings["fade_out"]).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_IN)
-  tween.connect("tween_completed", self._on_fade_complete.bind(channel, null, tween, action))
+  tween.finished.connect(self._on_fade_complete.bind(channel, null, tween, action))
   tween.play()
   channel.set_meta("tween", tween)
 
@@ -352,7 +368,7 @@ func stop_all(fade_out: float = 1.0) -> void:
       else:
         channel.stop()
   if tween:
-    tween.connect("tween_completed", self._on_fade_complete.bind(null, null, tween, "stop_all"))
+    tween.finished.connect(self._on_fade_complete.bind(null, null, tween, "stop_all"))
     tween.play()
   else:
     for t in $Tweens.get_children():
@@ -373,10 +389,10 @@ func clear_queue(track: String) -> void:
       print("Unknown track '%s' to clear queue.", track)
 
 func _on_fade_complete(channel, _nodePath, tween, action) -> void:
-  $Tweens.remove_child(tween)
+  #$Tweens.remove_child(tween)
   # Presumably the signal will disconnect when the tween is removed
-  tween.remove_all()
-  tween.queue_free()
+  #tween.remove_all()
+  #tween.queue_free()
   # If this is a stop action, stop the channel as well
   if action == "stop" or action == "clear":
     #self.logger.debug("Fade out complete on channel %s" % channel)
@@ -475,13 +491,15 @@ func set_quest(quest_column: String, quest_level: int) -> void:
   $Overlays/quest3.stream = load("res://assets/music/main/%s-3.ogg" % quest_column) if quest_level > 2 else null
 
 func _duck_music(value: float):
+  print(" - setting music bus volume to %0.2f" % value)
   AudioServer.set_bus_volume_db(1, value)
 
 func _duck_attack() -> void:
-  if not duck_settings:
+  if duck_settings.is_empty():
     return
   # We only have one duck at a time, so store the return values globally
   duck_release = duck_settings.get("release", default_duck.release)
+  MusicDuck = get_tree().create_tween()
   MusicDuck.tween_method(self._duck_music,
                                 # Always use the current level in case we're interrupting
                                 AudioServer.get_bus_volume_db(1),
@@ -490,15 +508,19 @@ func _duck_attack() -> void:
                                 .set_trans(Tween.TRANS_LINEAR) \
                                 .set_ease(Tween.EASE_IN)
   MusicDuck.play()
-  #self.logger.debug("Ducking voice clip down with settings: %s", duck_settings)
+  print("Ducking voice clip down with settings: %s", duck_settings)
   $DuckRelease.start(duck_settings.release_timestamp)
 
 
 func _duck_release():
-  if not duck_settings:
+  if duck_settings.is_empty():
     return
   # If the music is ducked, unduck it
   if AudioServer.get_bus_volume_db(1) < self.unduck_level:
-    #self.logger.debug("Unducking voice clip back to %0.2f db over %0.2f seconds", [self.unduck_level, duck_release])
-    MusicDuck.tween_method(self._duck_music, AudioServer.get_bus_volume_db(1), self.unduck_level, duck_release).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
+    var current_volume = AudioServer.get_bus_volume_db(1)
+    print("Unducking voice clip from %0.2f back to %0.2f db over %0.2f seconds" % [AudioServer.get_bus_volume_db(1), self.unduck_level, duck_release])
+    if MusicDuck:
+      MusicDuck.kill()
+    MusicDuck = get_tree().create_tween()
+    MusicDuck.tween_method(self._duck_music, current_volume, self.unduck_level, duck_release).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
     MusicDuck.play()

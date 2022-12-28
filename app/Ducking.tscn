@@ -12,13 +12,14 @@ grow_vertical = 2
 script = ExtResource("1_y15ba")
 
 [node name="SoundList" type="ItemList" parent="."]
-layout_mode = 0
-
-[node name="Button" type="Button" parent="SoundList"]
-layout_mode = 0
+offset_left = 83.0
+offset_top = 65.0
+offset_right = 416.0
+offset_bottom = 405.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="MusicButtons" type="GridContainer" parent="."]
-layout_mode = 0
 offset_left = 740.0
 offset_top = 51.0
 offset_right = 1062.0
@@ -26,61 +27,81 @@ offset_bottom = 184.0
 columns = 3
 
 [node name="green-1" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_right = 105.0
+offset_bottom = 42.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Green 1"
 
 [node name="red-1" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 109.0
+offset_right = 214.0
+offset_bottom = 42.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Red 1"
 
 [node name="blue-1" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 218.0
+offset_right = 322.0
+offset_bottom = 42.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Blue 1"
 
 [node name="green-2" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_top = 46.0
+offset_right = 105.0
+offset_bottom = 88.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Green 2"
 
 [node name="red-2" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 109.0
+offset_top = 46.0
+offset_right = 214.0
+offset_bottom = 88.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Red 2"
 
 [node name="blue-2" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 218.0
+offset_top = 46.0
+offset_right = 322.0
+offset_bottom = 88.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Blue 2"
 
 [node name="green-3" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_top = 92.0
+offset_right = 105.0
+offset_bottom = 133.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Green 3"
 
 [node name="red-3" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 109.0
+offset_top = 92.0
+offset_right = 214.0
+offset_bottom = 133.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Red 3"
 
 [node name="blue-3" type="Button" parent="MusicButtons"]
-layout_mode = 2
+offset_left = 218.0
+offset_top = 92.0
+offset_right = 322.0
+offset_bottom = 133.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 text = "Blue 3"
 
 [node name="Settings" type="GridContainer" parent="."]
-layout_mode = 0
 offset_left = 741.0
 offset_top = 312.0
 offset_right = 917.0
@@ -88,57 +109,80 @@ offset_bottom = 483.0
 columns = 2
 
 [node name="Label" type="Label" parent="Settings"]
-layout_mode = 2
+offset_top = 2.0
+offset_right = 105.0
+offset_bottom = 28.0
 text = "Delay"
 
 [node name="delay" type="LineEdit" parent="Settings"]
-layout_mode = 2
+offset_left = 109.0
+offset_right = 176.0
+offset_bottom = 31.0
 text = "0.05"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="Label3" type="Label" parent="Settings"]
-layout_mode = 2
+offset_top = 37.0
+offset_right = 105.0
+offset_bottom = 63.0
 text = "Attack"
 
 [node name="attack" type="LineEdit" parent="Settings"]
-layout_mode = 2
+offset_left = 109.0
+offset_top = 35.0
+offset_right = 176.0
+offset_bottom = 66.0
 text = "1"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="Label2" type="Label" parent="Settings"]
-layout_mode = 2
+offset_top = 72.0
+offset_right = 105.0
+offset_bottom = 98.0
 text = "Attenuation"
 
 [node name="attenuation" type="LineEdit" parent="Settings"]
-layout_mode = 2
+offset_left = 109.0
+offset_top = 70.0
+offset_right = 176.0
+offset_bottom = 101.0
 text = "8.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="Label4" type="Label" parent="Settings"]
-layout_mode = 2
+offset_top = 107.0
+offset_right = 105.0
+offset_bottom = 133.0
 text = "Release Point"
 
 [node name="release_point" type="LineEdit" parent="Settings"]
-layout_mode = 2
-text = "8.5"
+offset_left = 109.0
+offset_top = 105.0
+offset_right = 176.0
+offset_bottom = 136.0
+text = "0.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="Label5" type="Label" parent="Settings"]
-layout_mode = 2
+offset_top = 142.0
+offset_right = 105.0
+offset_bottom = 168.0
 text = "Release "
 
 [node name="release" type="LineEdit" parent="Settings"]
-layout_mode = 2
-text = "8.5"
+offset_left = 109.0
+offset_top = 140.0
+offset_right = 176.0
+offset_bottom = 171.0
+text = "0.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="Files" type="GridContainer" parent="."]
-layout_mode = 0
 offset_left = 43.0
 offset_top = 471.0
 offset_right = 83.0
@@ -146,17 +190,36 @@ offset_bottom = 511.0
 columns = 2
 
 [node name="Label" type="Label" parent="Files"]
-layout_mode = 2
+offset_top = 2.0
+offset_right = 106.0
+offset_bottom = 28.0
 text = "Source Folder"
 
 [node name="SourceFolder" type="Button" parent="Files"]
-layout_mode = 2
+offset_left = 110.0
+offset_right = 160.0
+offset_bottom = 31.0
 text = "None"
 
 [node name="Label2" type="Label" parent="Files"]
-layout_mode = 2
+offset_top = 37.0
+offset_right = 106.0
+offset_bottom = 63.0
 text = "Data File"
 
 [node name="DataFile" type="Button" parent="Files"]
-layout_mode = 2
+offset_left = 110.0
+offset_top = 35.0
+offset_right = 160.0
+offset_bottom = 66.0
 text = "None"
+
+[node name="Play" type="Button" parent="."]
+anchors_preset = -1
+anchor_right = 0.296
+anchor_bottom = 0.5
+offset_left = 852.0
+offset_top = 511.0
+offset_right = 558.008
+offset_bottom = 218.0
+text = "PLAY"
