@@ -13,22 +13,18 @@ func _ready():
     for b in $MusicButtons.get_children():
         b.pressed.connect(self.play_music.bind(b.name))
 
-#    for s in sounds:
-#        var b = Button.new()
-#        b.name = s
-#        b.text = s
-#        b.pressed.connect(self.play_sound.bind(s))
-#        $SoundList.add_child(b)
-
     $Files/SourceFolder.pressed.connect(self.set_source_folder)
     $Files/DataFile.pressed.connect(self.set_data_file)
     $SoundList.item_selected.connect(self.enable_playback)
     $Play.disabled = true
     $Play.pressed.connect(self.play_sound)
+    
+    self.set_source_folder()
 
 func enable_playback(index=-1):
     print("ENabling playback!")
     $Play.disabled = false
+    $SoundList.item_selected.disconnect(self.enable_playback)
 
 func play_music(name):
     var quest = name.split("-")

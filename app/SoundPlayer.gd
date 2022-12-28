@@ -491,7 +491,7 @@ func set_quest(quest_column: String, quest_level: int) -> void:
   $Overlays/quest3.stream = load("res://assets/music/main/%s-3.ogg" % quest_column) if quest_level > 2 else null
 
 func _duck_music(value: float):
-  print(" - setting music bus volume to %0.2f" % value)
+  #print(" - setting music bus volume to %0.2f" % value)
   AudioServer.set_bus_volume_db(1, value)
 
 func _duck_attack() -> void:
@@ -499,6 +499,10 @@ func _duck_attack() -> void:
     return
   # We only have one duck at a time, so store the return values globally
   duck_release = duck_settings.get("release", default_duck.release)
+  if MusicDuck:
+    print("killing old music duck")
+    MusicDuck.kill()
+  print("Attack the duck!!")
   MusicDuck = get_tree().create_tween()
   MusicDuck.tween_method(self._duck_music,
                                 # Always use the current level in case we're interrupting
@@ -507,8 +511,7 @@ func _duck_attack() -> void:
                                 duck_settings.get("attack", default_duck.attack)) \
                                 .set_trans(Tween.TRANS_LINEAR) \
                                 .set_ease(Tween.EASE_IN)
-  MusicDuck.play()
-  print("Ducking voice clip down with settings: %s", duck_settings)
+  print("Ducking voice clip down with settings: %s" % duck_settings)
   $DuckRelease.start(duck_settings.release_timestamp)
 
 
@@ -518,9 +521,9 @@ func _duck_release():
   # If the music is ducked, unduck it
   if AudioServer.get_bus_volume_db(1) < self.unduck_level:
     var current_volume = AudioServer.get_bus_volume_db(1)
-    print("Unducking voice clip from %0.2f back to %0.2f db over %0.2f seconds" % [AudioServer.get_bus_volume_db(1), self.unduck_level, duck_release])
+    var new_volume = float(self.unduck_level)
+    print("Unducking voice clip from %0.2f back to %0.2f db over %0.2f seconds" % [AudioServer.get_bus_volume_db(1), new_volume, duck_release])
     if MusicDuck:
       MusicDuck.kill()
     MusicDuck = get_tree().create_tween()
-    MusicDuck.tween_method(self._duck_music, current_volume, self.unduck_level, duck_release).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
-    MusicDuck.play()
+    MusicDuck.tween_method(self._duck_music, current_volume, new_volume, duck_release).set_trans(Tween.TRANS_LINEAR).set_ease(Tween.EASE_OUT)
