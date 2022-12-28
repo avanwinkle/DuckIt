@@ -1,15 +1,15 @@
 [gd_scene load_steps=2 format=3 uid="uid://c06u82ov4p65c"]
 
-[ext_resource type="Script" path="res://duckingtest.gd" id="1_y15ba"]
+[ext_resource type="Script" path="res://Ducking.gd" id="1_1pden"]
 
-[node name="duckingtest" type="Control"]
+[node name="Ducking" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_y15ba")
+script = ExtResource("1_1pden")
 
 [node name="SoundList" type="ItemList" parent="."]
 layout_mode = 0
