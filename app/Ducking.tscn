@@ -13,10 +13,10 @@ script = ExtResource("1_y15ba")
 
 [node name="SoundList" type="ItemList" parent="."]
 layout_mode = 0
-offset_left = 83.0
-offset_top = 65.0
-offset_right = 416.0
-offset_bottom = 405.0
+offset_left = 27.0
+offset_top = 176.0
+offset_right = 403.0
+offset_bottom = 608.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -36,6 +36,34 @@ offset_top = 312.0
 offset_right = 917.0
 offset_bottom = 483.0
 columns = 2
+
+[node name="Label6" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Track"
+
+[node name="track" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "voice"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="Label7" type="Label" parent="Settings"]
+layout_mode = 2
+text = "Volume"
+
+[node name="volume" type="LineEdit" parent="Settings"]
+layout_mode = 2
+text = "1.0"
+context_menu_enabled = false
+virtual_keyboard_enabled = false
+
+[node name="HSeparator" type="HSeparator" parent="Settings"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator2" type="HSeparator" parent="Settings"]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="Label" type="Label" parent="Settings"]
 layout_mode = 2
@@ -89,10 +117,10 @@ virtual_keyboard_enabled = false
 
 [node name="Files" type="GridContainer" parent="."]
 layout_mode = 0
-offset_left = 43.0
-offset_top = 471.0
-offset_right = 83.0
-offset_bottom = 511.0
+offset_left = 29.0
+offset_top = 25.0
+offset_right = 189.0
+offset_bottom = 126.0
 columns = 2
 
 [node name="Label" type="Label" parent="Files"]
@@ -102,6 +130,7 @@ text = "Source Folder"
 [node name="SourceFolder" type="Button" parent="Files"]
 layout_mode = 2
 text = "None"
+alignment = 0
 
 [node name="Label3" type="Label" parent="Files"]
 layout_mode = 2
@@ -110,6 +139,7 @@ text = "Music Folder"
 [node name="MusicFolder" type="Button" parent="Files"]
 layout_mode = 2
 text = "None"
+alignment = 0
 
 [node name="Label2" type="Label" parent="Files"]
 layout_mode = 2
@@ -118,14 +148,46 @@ text = "Data File"
 [node name="DataFile" type="Button" parent="Files"]
 layout_mode = 2
 text = "None"
+alignment = 0
 
 [node name="Play" type="Button" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 0.296
 anchor_bottom = 0.5
-offset_left = 852.0
-offset_top = 511.0
-offset_right = 558.008
-offset_bottom = 218.0
+offset_left = 739.0
+offset_top = 595.0
+offset_right = 445.008
+offset_bottom = 302.0
 text = "PLAY"
+
+[node name="Save" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.296
+anchor_bottom = 0.5
+offset_left = 968.0
+offset_top = 597.0
+offset_right = 674.008
+offset_bottom = 304.0
+text = "SAVE"
+
+[node name="Write" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.296
+anchor_bottom = 0.5
+offset_left = 24.0
+offset_top = 129.0
+offset_right = -178.992
+offset_bottom = -164.0
+text = "WRITE DATA FILE"
+
+[node name="HideFinished" type="CheckButton" parent="."]
+layout_mode = 0
+offset_left = 27.0
+offset_top = 615.0
+offset_right = 71.0
+offset_bottom = 639.0
+button_pressed = true
+text = "Hide sound files with saved settings"
