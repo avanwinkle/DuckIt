@@ -23,6 +23,8 @@ var _music_interrupt_channel: AudioStreamPlayer
 var _music_interrupt_time: float
 var _music_loop_channel: AudioStreamPlayer
 
+var mix_rate = 48000
+
 # Counter for the current loop number of the music (zero-indexed)
 var _music_loops: int = 0
 # Counter for what the next loop number will be
@@ -251,7 +253,7 @@ func play(filename: String, track: String, settings: Dictionary = {}, is_absolut
             stream = AudioStreamWAV.new()
             stream.data = buffer
             stream.format = 1 # 16 bit
-            stream.mix_rate = 48000
+            stream.mix_rate = mix_rate
             stream.stereo = false
           elif filepath.ends_with(".ogg"):
             stream = AudioStreamOggVorbis.new()

@@ -10,6 +10,7 @@ var config = {
 var data = {}
 var is_dirty = false
 
+const max_folder_chars = 36
 const default_settings = {
   "track": "voice", 
   "volume": 1.0, 
@@ -33,14 +34,21 @@ func _ready():
     $Files/MusicFolder.pressed.connect(self.set_music_folder)
     $Files/DataFile.pressed.connect(self.set_data_file)
     $SoundList.item_selected.connect(self.select_sound)
+    $SoundList.empty_clicked.connect(self.deselect_sound)
     $MusicList.item_selected.connect(self.play_music)
-    $Play.disabled = true
-    $Save.disabled = true
+    $MusicList.empty_clicked.connect(self.stop_music)
+    $Settings/Play.disabled = true
+    $Settings/Save.disabled = true
     $Write.disabled = true
-    $Play.pressed.connect(self.play_sound)
-    $Save.pressed.connect(self.save_sound)
+    $Settings.visible = false
+    $Settings/Play.pressed.connect(self.play_sound)
+    $Settings/Save.pressed.connect(self.save_sound)
     $Write.pressed.connect(self.write_data_file)
     $HideFinished.toggled.connect(self.toggle_hiding)
+    $Filter.text_changed.connect(self.filter_sounds)
+    $Settings/track.selected = 1
+    $Settings/sample_rate.selected = 2
+    $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
     
     for c in $Settings.get_children():
         if "-" in c.name:
@@ -81,18 +89,26 @@ func save_config():
         print("Unable to save config file:", err)
 
 func select_sound(index=-1):
-    $Play.disabled = false
-    $Save.disabled = false
+    $Settings/Play.disabled = false
+    $Settings/Save.disabled = false
     var filename = $SoundList.get_item_text(index)
     print("Looking for filename %s in settings? %s" % [filename, data.has(filename)])
     var settings = data.get(filename, default_settings)
-    $Settings/track.text = settings.track
+    $Settings/track.selected = 1 if settings.track == "callout" else 0
     $Settings/volume.text = str(settings.volume)
     $Settings/delay.text = str(settings.ducking.delay)
     $Settings/attack.text = str(settings.ducking.attack)
     $Settings/attenuation.text = str(settings.ducking.attenuation)
     $Settings/release_point.text = str(settings.ducking.release_point)
     $Settings/release.text = str(settings.ducking.release)
+    $Settings.visible = true
+    
+func deselect_sound(_position, _idx):
+    $Settings.visible = false
+    $SoundList.deselect_all()
+
+func filter_sounds(_text):
+    self.set_source_folder(config.source_folder)
 
 func play_music(name):
     var idx = $MusicList.get_selected_items()[0]
@@ -100,6 +116,10 @@ func play_music(name):
     print("Playing music at path %s" % path)
     SoundPlayer.play(path, "music",
         { "fade_in": 0.5, "fade_out": 1, "loop": true }, true)
+
+func stop_music(_position, _idx):
+    $MusicList.deselect_all()
+    SoundPlayer.stop_all(0.1)
 
 func play_sound():
     var idx = $SoundList.get_selected_items()[0]
@@ -120,7 +140,7 @@ func save_sound():
 
 func generate_sound_config():
     return {
-      "track": $Settings/track.text,
+      "track": $Settings/track.get_item_text($Settings/track.selected),
       "volume": float($Settings/volume.text),
       "ducking": {
         "delay": float($Settings/delay.text),
@@ -162,7 +182,7 @@ func set_source_folder(path=""):
     if config.source_folder:
       $SoundList.clear()
       self.parse_directory(path, $SoundList)
-      $Files/SourceFolder.text = path
+      $Files/SourceFolder.text = self.clip_source_path(path)
 
 func toggle_hiding(is_down):
     $SoundList.clear()
@@ -181,7 +201,7 @@ func set_music_folder(path=""):
     if config.music_folder:
         $MusicList.clear()
         self.parse_directory(path, $MusicList)
-        $Files/MusicFolder.text = path
+        $Files/MusicFolder.text = self.clip_source_path(path)
 
 func set_data_file(path=""):
     if path == "":
@@ -191,12 +211,12 @@ func set_data_file(path=""):
       config.data_file = path
       self.save_config()
     if config.data_file:
-      $Files/DataFile.text = path
+      $Files/DataFile.text = self.clip_source_path(path)
 
 func parse_directory(path: String, target: ItemList):
     var assets = []
     var hide_existing = target == $SoundList and $HideFinished.button_pressed
-    print("Parsing director with path %s, hide_existing is %s" % [path, hide_existing])
+    #print("Parsing director with path %s, hide_existing is %s" % [path, hide_existing])
     var dir = DirAccess.open(path)
     if not dir:
       print("Unable to open path '%s'" % path)
@@ -211,7 +231,10 @@ func parse_directory(path: String, target: ItemList):
           if hide_existing and data.has(file_name):
             pass
           else:
-            assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
+            if target == $SoundList and $Filter.text != "" and not file_name.contains($Filter.text):
+              pass
+            else:
+              assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
       file_name = dir.get_next()
     for asset in assets:
       #print("Adding asset '%s'" % asset.name)
@@ -258,3 +281,11 @@ func _notification(what):
         dialog.popup_centered()
       else:
         get_tree().quit() # default behavior
+
+func clip_source_path(path):
+  if path.length() <= max_folder_chars:
+    return path
+  return "...%s" % path.right(max_folder_chars)
+
+func set_sample_rate(idx):
+  SoundPlayer.mix_rate = int($Settings/sample_rate.get_item_text(idx))
