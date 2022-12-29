@@ -14,8 +14,8 @@ const default_settings = {
   "track": "voice", 
   "volume": 1.0, 
   "ducking": {
-    "delay": 0.5,
-    "attack": 1.0,
+    "delay": 0.0,
+    "attack": 0.5,
     "attenuation": 8.5,
     "release_point": 0.5,
     "release": 0.5
@@ -114,6 +114,9 @@ func save_sound():
     data[filename] = self.generate_sound_config()
     is_dirty = true
     $Write.disabled = false
+    if config.hide_finished:
+      $SoundList.remove_item(idx)
+      $SoundList.select(idx)
 
 func generate_sound_config():
     return {
