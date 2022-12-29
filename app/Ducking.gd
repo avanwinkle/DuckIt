@@ -255,9 +255,10 @@ func read_data_file():
 
 func write_data_file():
     var file = FileAccess.open(config.data_file, FileAccess.WRITE)
+    var ts = Time.get_datetime_dict_from_system()
     for line in [
-        "# Auto-generated sound file config",
-        "extends Node",
+        "# Auto-generated sound file config from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
+        "\nextends Node\n",
         "const SoundFiles = {",
     ]:
         file.store_line(line)
