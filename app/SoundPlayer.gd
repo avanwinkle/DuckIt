@@ -260,6 +260,7 @@ func play(filename: String, track: String, settings: Dictionary = {}, is_absolut
             stream.packet_sequence = data
           elif filepath.ends_with(".mp3"):
             stream = AudioStreamMP3.new()
+            stream.data = buffer
           else:
             print("Error opening file '%s': unknown audio type" % filepath)
           #for i in 200:

@@ -3,20 +3,32 @@ extends Control
 var config = {
     "source_folder": null,
     "data_file": null,
-    "music_folder": null
+    "music_folder": null,
+    "hide_finished": false
 }
 
-var data = {
-    "__default__": { "track": "voice", "volume": 1.0, "ducking": {
-        "delay": 0.5,
-        "attack": 1.0,
-        "attenuation": 8.5,
-        "release_point": 0.5,
-        "release": 0.5
-    }}
+var data = {}
+var is_dirty = false
+
+const default_settings = {
+  "track": "voice", 
+  "volume": 1.0, 
+  "ducking": {
+    "delay": 0.5,
+    "attack": 1.0,
+    "attenuation": 8.5,
+    "release_point": 0.5,
+    "release": 0.5
+}}
+
+enum SelectType {
+  DATA_FILE,
+  MUSIC_FOLDER,
+  SOURCE_FOLDER
 }
 
 func _ready():
+    get_tree().set_auto_accept_quit(false)
     $Files/SourceFolder.pressed.connect(self.set_source_folder)
     $Files/MusicFolder.pressed.connect(self.set_music_folder)
     $Files/DataFile.pressed.connect(self.set_data_file)
@@ -24,7 +36,7 @@ func _ready():
     $MusicList.item_selected.connect(self.play_music)
     $Play.disabled = true
     $Save.disabled = true
-    $HideFinished.button_pressed = true
+    $Write.disabled = true
     $Play.pressed.connect(self.play_sound)
     $Save.pressed.connect(self.save_sound)
     $Write.pressed.connect(self.write_data_file)
@@ -50,8 +62,7 @@ func load_config():
         for k in config.keys():
             if config_file.has_section_key("config", k):
                 config[k] = config_file.get_value("config", k)
-    config.music_folder = "/Users/anthony/git/swords-of-vengeance/godot-mc/assets/music"
-    config.data_file = "/Users/anthony/git/swords-of-vengeance/godot-mc/autoloads/sounds.gd"
+    $HideFinished.button_pressed = config.hide_finished
     if config.get("data_file"):
         self.set_data_file(config.data_file)
         self.read_data_file()
@@ -74,7 +85,7 @@ func select_sound(index=-1):
     $Save.disabled = false
     var filename = $SoundList.get_item_text(index)
     print("Looking for filename %s in settings? %s" % [filename, data.has(filename)])
-    var settings = data.get(filename, data["__default__"])
+    var settings = data.get(filename, default_settings)
     $Settings/track.text = settings.track
     $Settings/volume.text = str(settings.volume)
     $Settings/delay.text = str(settings.ducking.delay)
@@ -89,12 +100,6 @@ func play_music(name):
     print("Playing music at path %s" % path)
     SoundPlayer.play(path, "music",
         { "fade_in": 0.5, "fade_out": 1, "loop": true }, true)
-    #var quest = name.split("-")
-    #print("Playing music %s over base %s" % [name, quest[1]])
-    #SoundPlayer.play("main/main-%s.ogg" % quest[1], "music", { "fade_in": 0.5, "fade_out": 1, "loop_signal": true})
-    #SoundPlayer.set_quest(quest[0], int(quest[1]))
-    #SoundPlayer.play("main/%s.ogg" % name, "overlay", { "overlay": "quest1"})
-    # SoundPlayer.get_child_by_name("Overlays").get_child_by_name("quest1").stream = load("res://assets/music/main/%s.ogg" % name)
 
 func play_sound():
     var idx = $SoundList.get_selected_items()[0]
@@ -107,6 +112,8 @@ func save_sound():
     var idx = $SoundList.get_selected_items()[0]
     var filename = $SoundList.get_item_text(idx)
     data[filename] = self.generate_sound_config()
+    is_dirty = true
+    $Write.disabled = false
 
 func generate_sound_config():
     return {
@@ -120,44 +127,62 @@ func generate_sound_config():
         "release": float($Settings/release.text)
     }}
 
-func prompt_for_folder():
+func prompt_for_folder(title: String, select_type: SelectType):
     var dialog = FileDialog.new()
-    dialog.mode = 2
-    dialog.access = 2
+    dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE if select_type == SelectType.DATA_FILE else FileDialog.FILE_MODE_OPEN_DIR
+    dialog.access = FileDialog.ACCESS_FILESYSTEM
+    dialog.mode_overrides_title = true
+    dialog.min_size = Vector2i(640, 480)
+    dialog.title = "Select %s" % title
+    if select_type == SelectType.DATA_FILE:
+      dialog.file_selected.connect(self.set_data_file)
+    elif select_type == SelectType.MUSIC_FOLDER:
+      dialog.dir_selected.connect(self.set_music_folder)
+    elif select_type == SelectType.SOURCE_FOLDER:
+      dialog.dir_selected.connect(self.set_source_folder)
+    else:
+      print("Unknown select type %s for FileDialog" % select_type)
+      return
     self.add_child(dialog)
     dialog.popup_centered()
-    var path = "/Users/anthony/git/swords-of-vengeance/godot-mc/assets/voice"
-    return path
 
 func set_source_folder(path=""):
     print("Set source folder")
     if path == "":
-        config["source_folder"] = prompt_for_folder()
+        prompt_for_folder("Source Folder", SelectType.SOURCE_FOLDER)
+    elif path != config.source_folder:
+        config.source_folder = path
         self.save_config()
     if path != "":
         self.parse_directory(path, $SoundList)
         $Files/SourceFolder.text = path
 
-func toggle_hiding(_down):
+func toggle_hiding(is_down):
     $SoundList.clear()
     self.parse_directory(config.source_folder, $SoundList)
+    config.hide_finished = is_down
+    self.save_config()
 
 func set_music_folder(path=""):
     print("Set music folder")
     if path == "":
-        config["music_folder"] = prompt_for_folder()
+        prompt_for_folder("Music Folder", SelectType.MUSIC_FOLDER)
+    elif path != config.music_folder:
+        print("Got new music path: '%s'" % path)
+        config.music_folder = path
         self.save_config()
-    if path != "":
+    if config["music_folder"] != "":
         self.parse_directory(path, $MusicList)
         $Files/MusicFolder.text = path
 
-func set_data_file(path):
+func set_data_file(path=""):
     print("Set data file")
     if path == "":
-        config["data_file"] = prompt_for_folder()
-    if path != "":
+        prompt_for_folder("Data File", SelectType.DATA_FILE)
+    elif path != config.data_file:
       config.data_file = path
       self.save_config()
+    if config.data_file:
       $Files/DataFile.text = path
 
 func parse_directory(path: String, target: ItemList):
@@ -182,6 +207,7 @@ func parse_directory(path: String, target: ItemList):
           else:
             assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
       file_name = dir.get_next()
+    target.clear()
     for asset in assets:
       #print("Adding asset '%s'" % asset.name)
       var idx = target.add_item(asset.name)
@@ -196,7 +222,8 @@ func adjust_level(target, direction):
 
 func read_data_file():
     var data_file = ResourceLoader.load(config.data_file)
-    data = data_file.SoundFiles
+    if data_file:
+      data = data_file.SoundFiles
 
 func write_data_file():
     var file = FileAccess.open(config.data_file, FileAccess.WRITE)
@@ -207,6 +234,22 @@ func write_data_file():
     ]:
         file.store_line(line)
     for k in data.keys():
-        if k != "__default__":
-            file.store_line('    "%s": %s,' % [k, data[k]])
+      file.store_line('    "%s": %s,' % [k, data[k]])
     file.store_line("}")
+    is_dirty = false
+    $Write.disabled = true
+
+func _notification(what):
+    if what == NOTIFICATION_WM_CLOSE_REQUEST:
+      if is_dirty:
+        print("changes are dirty, not quitting")
+        var dialog = ConfirmationDialog.new()
+        dialog.title = "Quit Without Saving?"
+        dialog.dialog_text = "\nYou have unsaved changes. Exiting now will lose them forever.\n"
+        dialog.ok_button_text = "Quit Without Saving"
+        dialog.get_ok_button().pressed.connect(get_tree().quit)
+        dialog.min_size = Vector2i(400, 200)
+        self.add_child(dialog)
+        dialog.popup_centered()
+      else:
+        get_tree().quit() # default behavior
