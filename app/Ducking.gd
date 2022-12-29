@@ -135,10 +135,13 @@ func prompt_for_folder(title: String, select_type: SelectType):
     dialog.min_size = Vector2i(640, 480)
     dialog.title = "Select %s" % title
     if select_type == SelectType.DATA_FILE:
+      dialog.current_path = config.data_file
       dialog.file_selected.connect(self.set_data_file)
     elif select_type == SelectType.MUSIC_FOLDER:
+      dialog.current_dir = config.music_folder
       dialog.dir_selected.connect(self.set_music_folder)
     elif select_type == SelectType.SOURCE_FOLDER:
+      dialog.current_dir = config.source_folder
       dialog.dir_selected.connect(self.set_source_folder)
     else:
       print("Unknown select type %s for FileDialog" % select_type)
@@ -147,15 +150,16 @@ func prompt_for_folder(title: String, select_type: SelectType):
     dialog.popup_centered()
 
 func set_source_folder(path=""):
-    print("Set source folder")
     if path == "":
         prompt_for_folder("Source Folder", SelectType.SOURCE_FOLDER)
+        return
     elif path != config.source_folder:
         config.source_folder = path
         self.save_config()
-    if path != "":
-        self.parse_directory(path, $SoundList)
-        $Files/SourceFolder.text = path
+    if config.source_folder:
+      $SoundList.clear()
+      self.parse_directory(path, $SoundList)
+      $Files/SourceFolder.text = path
 
 func toggle_hiding(is_down):
     $SoundList.clear()
@@ -164,21 +168,22 @@ func toggle_hiding(is_down):
     self.save_config()
 
 func set_music_folder(path=""):
-    print("Set music folder")
     if path == "":
         prompt_for_folder("Music Folder", SelectType.MUSIC_FOLDER)
+        return
     elif path != config.music_folder:
         print("Got new music path: '%s'" % path)
         config.music_folder = path
         self.save_config()
-    if config["music_folder"] != "":
+    if config.music_folder:
+        $MusicList.clear()
         self.parse_directory(path, $MusicList)
         $Files/MusicFolder.text = path
 
 func set_data_file(path=""):
-    print("Set data file")
     if path == "":
         prompt_for_folder("Data File", SelectType.DATA_FILE)
+        return
     elif path != config.data_file:
       config.data_file = path
       self.save_config()
@@ -197,17 +202,14 @@ func parse_directory(path: String, target: ItemList):
     var file_name = dir.get_next()
     while file_name != "":
       if dir.current_is_dir():
-        print("Found subfolder %s" % file_name)
         parse_directory("%s/%s" % [path, file_name], target)
       else:
-        var suffix = file_name.split(".")[-1]
-        if suffix in ["wav", "ogg", "mp3"]:
+        if file_name.get_extension() in ["wav", "ogg", "mp3"]:
           if hide_existing and data.has(file_name):
             pass
           else:
             assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
       file_name = dir.get_next()
-    target.clear()
     for asset in assets:
       #print("Adding asset '%s'" % asset.name)
       var idx = target.add_item(asset.name)
