@@ -29,6 +29,10 @@ func _ready():
     $Save.pressed.connect(self.save_sound)
     $Write.pressed.connect(self.write_data_file)
     $HideFinished.toggled.connect(self.toggle_hiding)
+    
+    for c in $Settings.get_children():
+        if "-" in c.name:
+            c.pressed.connect(self.callv.bind("adjust_level", c.name.split("-")))
 
     self.load_config()
 
@@ -182,6 +186,13 @@ func parse_directory(path: String, target: ItemList):
       #print("Adding asset '%s'" % asset.name)
       var idx = target.add_item(asset.name)
       target.set_item_metadata(idx, asset.path)
+
+func adjust_level(target, direction):
+    var n = $Settings.get_node(target)
+    var adjustment = 0.01 if Input.is_key_pressed(KEY_SHIFT) else 0.1 
+    if direction == "down":
+        adjustment = adjustment * -1
+    n.text = str(float(n.text) + adjustment)
 
 func read_data_file():
     var data_file = ResourceLoader.load(config.data_file)
