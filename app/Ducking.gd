@@ -29,9 +29,9 @@ func _ready():
     $Save.pressed.connect(self.save_sound)
     $Write.pressed.connect(self.write_data_file)
     $HideFinished.toggled.connect(self.toggle_hiding)
-    
+
     self.load_config()
-    
+
 func load_config():
     var config_file = ConfigFile.new()
 
@@ -41,7 +41,7 @@ func load_config():
     # If the file didn't load, ignore it.
     if err != OK:
         return
-        
+
     if config_file.has_section("config"):
         for k in config.keys():
             if config_file.has_section_key("config", k):
@@ -51,7 +51,7 @@ func load_config():
     if config.get("data_file"):
         self.set_data_file(config.data_file)
         self.read_data_file()
-    if config.get("source_folder"):    
+    if config.get("source_folder"):
         self.set_source_folder(config.source_folder)
     if config.get("music_folder"):
         self.set_music_folder(config.music_folder)
@@ -83,7 +83,7 @@ func play_music(name):
     var idx = $MusicList.get_selected_items()[0]
     var path = $MusicList.get_item_metadata(idx)
     print("Playing music at path %s" % path)
-    SoundPlayer.play(path, "music", 
+    SoundPlayer.play(path, "music",
         { "fade_in": 0.5, "fade_out": 1, "loop": true }, true)
     #var quest = name.split("-")
     #print("Playing music %s over base %s" % [name, quest[1]])
@@ -96,7 +96,7 @@ func play_sound():
     var idx = $SoundList.get_selected_items()[0]
     var path = $SoundList.get_item_metadata(idx)
     print("Playing sound at %s" % path)
-  
+
     SoundPlayer.play("%s" % path, "voice", self.generate_sound_config(), true)
 
 func save_sound():
@@ -105,7 +105,7 @@ func save_sound():
     data[filename] = self.generate_sound_config()
 
 func generate_sound_config():
-    return { 
+    return {
       "track": $Settings/track.text,
       "volume": float($Settings/volume.text),
       "ducking": {
@@ -124,7 +124,7 @@ func prompt_for_folder():
     dialog.popup_centered()
     var path = "/Users/anthony/git/swords-of-vengeance/godot-mc/assets/voice"
     return path
-    
+
 func set_source_folder(path=""):
     print("Set source folder")
     if path == "":
@@ -146,7 +146,7 @@ func set_music_folder(path=""):
     if path != "":
         self.parse_directory(path, $MusicList)
         $Files/MusicFolder.text = path
-        
+
 func set_data_file(path):
     print("Set data file")
     if path == "":
@@ -158,7 +158,7 @@ func set_data_file(path):
 
 func parse_directory(path: String, target: ItemList):
     var assets = []
-    var hide_existing = target == $SoundList and $HideFinished.button_pressed 
+    var hide_existing = target == $SoundList and $HideFinished.button_pressed
     print("Parsing director with path %s, hide_existing is %s" % [path, hide_existing])
     var dir = DirAccess.open(path)
     if not dir:
@@ -173,29 +173,18 @@ func parse_directory(path: String, target: ItemList):
       else:
         var suffix = file_name.split(".")[-1]
         if suffix in ["wav", "ogg", "mp3"]:
-          #print("Found file %s" % file_name)
-          var short_name = file_name.split(".", 1)[0]
-          if hide_existing and data.has(short_name):
+          if hide_existing and data.has(file_name):
             pass
           else:
-            assets.push_back({"name": short_name, "path": "%s/%s" % [path, file_name]})
+            assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
       file_name = dir.get_next()
     for asset in assets:
       #print("Adding asset '%s'" % asset.name)
-      #b.pressed.connect(self.play_sound.bind(asset.path))
       var idx = target.add_item(asset.name)
       target.set_item_metadata(idx, asset.path)
 
 func read_data_file():
-    #var file = FileAccess.open(config.data_file, FileAccess.READ)
-    #var line = file.get_line()
-    #  while line:
-    #    if 
-    #    line = file.get_line()
     var data_file = ResourceLoader.load(config.data_file)
-    print("Found a data file?")
-    print(data_file)
-    print(data_file.SoundFiles)
     data = data_file.SoundFiles
 
 func write_data_file():
@@ -207,5 +196,6 @@ func write_data_file():
     ]:
         file.store_line(line)
     for k in data.keys():
-        file.store_line('    "%s": %s,' % [k, data[k]])
+        if k != "__default__":
+            file.store_line('    "%s": %s,' % [k, data[k]])
     file.store_line("}")
