@@ -1,2 +1,3 @@
 *.ogg
 *.import
+*\.app/**

@@ -13,7 +13,8 @@ config_version=5
 config/name="Duck It!"
 run/main_scene="res://Ducking.tscn"
 config/features=PackedStringArray("4.0", "GL Compatibility")
-config/icon="res://icon.svg"
+boot_splash/show_image=false
+config/icon="res://assets/icon.png"
 
 [autoload]
 
