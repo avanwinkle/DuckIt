@@ -12,8 +12,8 @@ var is_dirty = false
 
 const max_folder_chars = 36
 const default_settings = {
-  "track": "voice", 
-  "volume": 1.0, 
+  "track": "voice",
+  "volume": 1.0,
   "ducking": {
     "delay": 0.0,
     "attack": 0.5,
@@ -49,7 +49,7 @@ func _ready():
     $Settings/track.selected = 1
     $Settings/sample_rate.selected = 2
     $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
-    
+
     for c in $Settings.get_children():
         if "-" in c.name:
             c.pressed.connect(self.callv.bind("adjust_level", c.name.split("-")))
@@ -102,7 +102,7 @@ func select_sound(index=-1):
     $Settings/release_point.text = str(settings.ducking.release_point)
     $Settings/release.text = str(settings.ducking.release)
     $Settings.visible = true
-    
+
 func deselect_sound(_position, _idx):
     $Settings.visible = false
     $SoundList.deselect_all()
@@ -243,28 +243,30 @@ func parse_directory(path: String, target: ItemList):
 
 func adjust_level(target, direction):
     var n = $Settings.get_node(target)
-    var adjustment = 0.01 if Input.is_key_pressed(KEY_SHIFT) else 0.1 
+    var adjustment = 0.01 if Input.is_key_pressed(KEY_SHIFT) else 0.1
     if direction == "down":
         adjustment = adjustment * -1
     n.text = str(float(n.text) + adjustment)
 
 func read_data_file():
-    var data_file = ResourceLoader.load(config.data_file)
+    print("Loading data file '%s'..." % config.data_file)
+    var data_file = load(config.data_file)
     if data_file:
-      data = data_file.SoundFiles
+      for p in data_file.SoundSettings.keys():
+        data[p] = data_file.SoundSettings.get(p)
 
 func write_data_file():
     var file = FileAccess.open(config.data_file, FileAccess.WRITE)
     var ts = Time.get_datetime_dict_from_system()
     for line in [
         "# Auto-generated sound file config from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
-        "\nextends Node\n",
-        "const SoundFiles = {",
+        "\nextends Resource\n",
+        "const SoundSettings = {"
     ]:
         file.store_line(line)
     for k in data.keys():
-      file.store_line('    "%s": %s,' % [k, data[k]])
-    file.store_line("}")
+      file.store_line('  "%s": %s,' % [k, data[k]])
+    file.store_line("}\n")
     is_dirty = false
     $Write.disabled = true
 
