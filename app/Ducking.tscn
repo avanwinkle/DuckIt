@@ -235,7 +235,7 @@ offset_right = 758.0
 offset_bottom = 585.0
 columns = 2
 
-[node name="Label" type="Label" parent="Files"]
+[node name="SourceLabel" type="Label" parent="Files"]
 layout_mode = 2
 text = "Source Folder"
 
@@ -245,7 +245,7 @@ size_flags_horizontal = 3
 text = "None"
 alignment = 0
 
-[node name="Label3" type="Label" parent="Files"]
+[node name="MusicLabel" type="Label" parent="Files"]
 layout_mode = 2
 text = "Music Folder"
 
@@ -254,11 +254,29 @@ layout_mode = 2
 text = "None"
 alignment = 0
 
-[node name="Label2" type="Label" parent="Files"]
+[node name="DataLabel" type="Label" parent="Files"]
 layout_mode = 2
 text = "Data File"
 
 [node name="DataFile" type="Button" parent="Files"]
+layout_mode = 2
+text = "None"
+alignment = 0
+
+[node name="ResourceLabel" type="Label" parent="Files"]
+layout_mode = 2
+text = "Resource Folder"
+
+[node name="ResourceFolder" type="Button" parent="Files"]
+layout_mode = 2
+text = "None"
+alignment = 0
+
+[node name="ProjectLabel" type="Label" parent="Files"]
+layout_mode = 2
+text = "Project Root"
+
+[node name="ProjectFolder" type="Button" parent="Files"]
 layout_mode = 2
 text = "None"
 alignment = 0

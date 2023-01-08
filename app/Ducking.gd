@@ -4,11 +4,14 @@ var config = {
     "source_folder": null,
     "data_file": null,
     "music_folder": null,
+    "resource_folder": null,
+    "project_folder": null,
     "hide_finished": false
 }
 
 var data = {}
 var is_dirty = false
+var autosave_audiostreamres = true
 
 const max_folder_chars = 36
 const default_settings = {
@@ -25,13 +28,17 @@ const default_settings = {
 enum SelectType {
   DATA_FILE,
   MUSIC_FOLDER,
-  SOURCE_FOLDER
+  SOURCE_FOLDER,
+  RESOURCE_FOLDER,
+  PROJECT_FOLDER
 }
 
 func _ready():
     get_tree().set_auto_accept_quit(false)
     $Files/SourceFolder.pressed.connect(self.set_source_folder)
     $Files/MusicFolder.pressed.connect(self.set_music_folder)
+    $Files/ResourceFolder.pressed.connect(self.set_resource_folder)
+    $Files/ProjectFolder.pressed.connect(self.set_project_folder)
     $Files/DataFile.pressed.connect(self.set_data_file)
     $SoundList.item_selected.connect(self.select_sound)
     $SoundList.empty_clicked.connect(self.deselect_sound)
@@ -49,6 +56,16 @@ func _ready():
     $Settings/track.selected = 1
     $Settings/sample_rate.selected = 2
     $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
+
+    if autosave_audiostreamres:
+      $Files/DataFile.visible = false
+      $Files/DataLabel.visible = false
+      $Write.visible = false
+    else:
+      $Files/ResourceFolder.visible = false
+      $Files/ResourceLabel.visible = false
+      $Files/ProjectFolder.visible = false
+      $Files/ProjectLabel.visible = false
 
     for c in $Settings.get_children():
         if "-" in c.name:
@@ -78,6 +95,10 @@ func load_config():
         self.set_source_folder(config.source_folder)
     if config.get("music_folder"):
         self.set_music_folder(config.music_folder)
+    if config.get("resource_folder"):
+        self.set_resource_folder(config.resource_folder)
+    if config.get("project_folder"):
+        self.set_project_folder(config.project_folder)
     print("Setup with config: %s" % config)
 
 func save_config():
@@ -131,11 +152,41 @@ func play_sound():
 func save_sound():
     var idx = $SoundList.get_selected_items()[0]
     var filename = $SoundList.get_item_text(idx)
+    var path = $SoundList.get_item_metadata(idx)
     data[filename] = self.generate_sound_config()
     is_dirty = true
     $Write.disabled = false
+
+    if autosave_audiostreamres:
+      is_dirty = false
+      var target_path = path.replace(config.source_folder, config.resource_folder).replace(".wav", ".tres")
+      print("Autosaving resource for %s at target path %s" % [filename, target_path])
+
+      if not DirAccess.dir_exists_absolute(target_path.get_base_dir()):
+        DirAccess.make_dir_recursive_absolute(target_path.get_base_dir())
+      var file = FileAccess.open(target_path, FileAccess.WRITE)
+      var ts = Time.get_datetime_dict_from_system()
+
+      for line in [
+          #"# Auto-generated resource from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
+          '[gd_resource type="AudioStreamSample" load_steps=3 format=2]\n',
+          '[ext_resource path="res://resources/AudioStreamCallout.gd" type="Script" id=1]',
+          '[ext_resource path="%s" type="AudioStream" id=2]\n' % path.replace(config.project_folder, "res:/"),
+          '[resource]',
+          'script = ExtResource( 1 )',
+          'sound_file = ExtResource( 2 )',
+          'track = "%s"' % data[filename].track,
+          'gain = %s' % data[filename].volume
+      ]:
+          file.store_line(line)
+      for k in data[filename].ducking.keys():
+        file.store_line('%s = %s' % [k, data[filename].ducking[k]])
+      file.store_line("\n")
+
     if config.hide_finished:
       $SoundList.remove_item(idx)
+      if idx == $SoundList.item_count:
+        idx = idx - 1
       $SoundList.select(idx)
 
 func generate_sound_config():
@@ -158,16 +209,27 @@ func prompt_for_folder(title: String, select_type: SelectType):
     dialog.min_size = Vector2i(640, 480)
     dialog.title = "Select %s" % title
     if select_type == SelectType.DATA_FILE:
-      dialog.current_path = config.data_file
+      if config.data_file:
+        dialog.current_path = config.data_file
       dialog.file_selected.connect(self.set_data_file)
     elif select_type == SelectType.MUSIC_FOLDER:
-      dialog.current_dir = config.music_folder
+      if config.music_folder:
+        dialog.current_dir = config.music_folder
       dialog.dir_selected.connect(self.set_music_folder)
     elif select_type == SelectType.SOURCE_FOLDER:
-      dialog.current_dir = config.source_folder
+      if config.source_folder:
+        dialog.current_dir = config.source_folder
       dialog.dir_selected.connect(self.set_source_folder)
+    elif select_type == SelectType.RESOURCE_FOLDER:
+      if config.resource_folder:
+        dialog.current_dir = config.resource_folder
+      dialog.dir_selected.connect(self.set_resource_folder)
+    elif select_type == SelectType.PROJECT_FOLDER:
+      if config.project_folder:
+        dialog.current_dir = config.project_folder
+      dialog.dir_selected.connect(self.set_project_folder)
     else:
-      print("Unknown select type %s for FileDialog" % select_type)
+      push_warning("Unknown select type %s for FileDialog" % select_type)
       return
     self.add_child(dialog)
     dialog.popup_centered()
@@ -202,6 +264,34 @@ func set_music_folder(path=""):
         $MusicList.clear()
         self.parse_directory(path, $MusicList)
         $Files/MusicFolder.text = self.clip_source_path(path)
+
+func set_resource_folder(path=""):
+  if path == "":
+      prompt_for_folder("Resource Folder", SelectType.RESOURCE_FOLDER)
+      return
+  elif path != config.resource_folder:
+      print("Got resource folder: '%s'" % path)
+      config.resource_folder = path
+      self.save_config()
+  if config.resource_folder:
+      # TODO: assemble the data from the files here
+      # $MusicList.clear()
+      # self.parse_directory(path, $MusicList)
+      $Files/ResourceFolder.text = self.clip_source_path(path)
+
+func set_project_folder(path=""):
+  if path == "":
+      prompt_for_folder("Project Root", SelectType.PROJECT_FOLDER)
+      return
+  elif path != config.project_folder:
+      print("Got resource folder: '%s'" % path)
+      config.project_folder = path
+      self.save_config()
+  if config.project_folder:
+      # TODO: assemble the data from the files here
+      # $MusicList.clear()
+      # self.parse_directory(path, $MusicList)
+      $Files/ProjectFolder.text = self.clip_source_path(path)
 
 func set_data_file(path=""):
     if path == "":
