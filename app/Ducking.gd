@@ -89,10 +89,10 @@ func load_config():
             if config_file.has_section_key("config", k):
                 config[k] = config_file.get_value("config", k)
     $HideFinished.button_pressed = config.hide_finished
-    if config.get("data_file"):
+    if config.get("data_file") and not autosave_audiostreamres:
         self.set_data_file(config.data_file)
         self.read_data_file()
-    if config.get("resource_folder"):
+    if config.get("resource_folder") and autosave_audiostreamres:
         self.set_resource_folder(config.resource_folder)
     if config.get("project_folder"):
         self.set_project_folder(config.project_folder)
