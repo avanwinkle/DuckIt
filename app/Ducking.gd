@@ -169,7 +169,7 @@ func save_sound():
 
       for line in [
           #"# Auto-generated resource from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
-          '[gd_resource type="AudioStreamSample" load_steps=3 format=2]\n',
+          '[gd_resource type="Resource" load_steps=3 format=2]\n',
           '[ext_resource path="res://resources/AudioStreamCallout.gd" type="Script" id=1]',
           '[ext_resource path="%s" type="AudioStream" id=2]\n' % path.replace(config.project_folder, "res:/"),
           '[resource]',
