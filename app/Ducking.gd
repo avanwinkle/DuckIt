@@ -12,6 +12,7 @@ var config = {
 var data = {}
 var is_dirty = false
 var autosave_audiostreamres = true
+var existing_files = []
 
 const max_folder_chars = 36
 const default_settings = {
@@ -91,14 +92,14 @@ func load_config():
     if config.get("data_file"):
         self.set_data_file(config.data_file)
         self.read_data_file()
-    if config.get("source_folder"):
-        self.set_source_folder(config.source_folder)
-    if config.get("music_folder"):
-        self.set_music_folder(config.music_folder)
     if config.get("resource_folder"):
         self.set_resource_folder(config.resource_folder)
     if config.get("project_folder"):
         self.set_project_folder(config.project_folder)
+    if config.get("source_folder"):
+        self.set_source_folder(config.source_folder)
+    if config.get("music_folder"):
+        self.set_music_folder(config.music_folder)
     print("Setup with config: %s" % config)
 
 func save_config():
@@ -274,9 +275,7 @@ func set_resource_folder(path=""):
       config.resource_folder = path
       self.save_config()
   if config.resource_folder:
-      # TODO: assemble the data from the files here
-      # $MusicList.clear()
-      # self.parse_directory(path, $MusicList)
+      self.parse_directory(path, null, existing_files)
       $Files/ResourceFolder.text = self.clip_source_path(path)
 
 func set_project_folder(path=""):
@@ -303,9 +302,9 @@ func set_data_file(path=""):
     if config.data_file:
       $Files/DataFile.text = self.clip_source_path(path)
 
-func parse_directory(path: String, target: ItemList):
+func parse_directory(path: String, target, accum = null):
     var assets = []
-    var hide_existing = target == $SoundList and $HideFinished.button_pressed
+    var hide_existing = target and target == $SoundList and $HideFinished.button_pressed
     #print("Parsing director with path %s, hide_existing is %s" % [path, hide_existing])
     var dir = DirAccess.open(path)
     if not dir:
@@ -315,21 +314,26 @@ func parse_directory(path: String, target: ItemList):
     var file_name = dir.get_next()
     while file_name != "":
       if dir.current_is_dir():
-        parse_directory("%s/%s" % [path, file_name], target)
+        parse_directory("%s/%s" % [path, file_name], target, accum)
       else:
         if file_name.get_extension() in ["wav", "ogg", "mp3"]:
-          if hide_existing and data.has(file_name):
+          if hide_existing and not autosave_audiostreamres and data.has(file_name):
+            pass
+          elif hide_existing and autosave_audiostreamres and file_name in existing_files:
             pass
           else:
             if target == $SoundList and $Filter.text != "" and not file_name.contains($Filter.text):
               pass
             else:
               assets.push_back({"name": file_name, "path": "%s/%s" % [path, file_name]})
+        elif file_name.get_extension() == "tres" and accum != null:
+          accum.append(file_name.replace(".tres", ".wav"))
       file_name = dir.get_next()
     for asset in assets:
-      #print("Adding asset '%s'" % asset.name)
-      var idx = target.add_item(asset.name)
-      target.set_item_metadata(idx, asset.path)
+      if target:
+        #print("Adding asset '%s'" % asset.name)
+        var idx = target.add_item(asset.name)
+        target.set_item_metadata(idx, asset.path)
 
 func adjust_level(target, direction):
     var n = $Settings.get_node(target)
