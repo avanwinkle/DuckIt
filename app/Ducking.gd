@@ -122,7 +122,7 @@ func initialize(_idx=-1):
         self.set_source_folder(config.source_folder)
     if config.get("music_folder"):
         self.set_music_folder(config.music_folder)
-    #print("Setup with config: %s" % config)
+    print("Setup with config: %s" % config)
 
 func save_config():
     var config_file = ConfigFile.new()
@@ -354,7 +354,7 @@ func read_data_file():
 func write_data_file():
   var output_format = $Files/OutputOption.selected
   if output_format == OutputFormat.MPF_YAML:
-    push_warning("MPF Yaml output not yet supported.")
+    _write_mpf_yaml_file()
   elif output_format == OutputFormat.GODOT_RESOURCE:
     _write_godot_resource_file()
   elif output_format == OutputFormat.GODOT_TRES:
@@ -363,6 +363,30 @@ func write_data_file():
     push_error("Unknown output format selection %d" % output_format)
     return
   is_dirty = false
+
+func _write_mpf_yaml_file():
+  var file = FileAccess.open(config.data_file, FileAccess.WRITE)
+  var ts = Time.get_datetime_dict_from_system()
+  for line in [
+      "#config_version=5",
+      "# Auto-generated sound file config from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
+      "\nsounds:",
+  ]:
+      file.store_line(line)
+  for k in data.keys():
+    for line in [
+      "  %s:" % k.get_basename(),
+      "    file: %s" % k,
+      "    track: %s" % data[k].track,
+      "    volume: %0.2f" % data[k].volume,
+      "    ducking:",
+      "      target: music",
+    ]:
+      file.store_line(line)
+    for d in data[k].ducking.keys():
+      file.store_line("      %s: %0.2f" % [d, data[k].ducking[d]])
+  file.store_line("\n")
+  $Files/Write.disabled = true
 
 func _write_godot_resource_file():
     var file = FileAccess.open(config.data_file, FileAccess.WRITE)
