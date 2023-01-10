@@ -11,7 +11,7 @@ var config = {
 
 var data = {}
 var is_dirty = false
-var autosave_audiostreamres = true
+var autosave = true
 var existing_files = []
 
 const max_folder_chars = 64
@@ -32,6 +32,12 @@ enum SelectType {
   SOURCE_FOLDER,
   RESOURCE_FOLDER,
   PROJECT_FOLDER
+}
+
+enum OutputFormat {
+  MPF_YAML,
+  GODOT_RESOURCE,
+  GODOT_TRES
 }
 
 func _ready():
@@ -58,11 +64,13 @@ func _ready():
     $Settings/sample_rate.selected = 2
     $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
 
-    if autosave_audiostreamres:
+    # Godot TRES always saves individual files
+    if $Files/OutputOption.selected == OutputFormat.GODOT_TRES:
       $Files/DataFile.visible = false
       $Files/DataLabel.visible = false
       $Files/Write.visible = false
       $Files/WriteSpacer.visible = false
+    # MPF Yaml and Godot Resource save a single file
     else:
       $Files/ResourceFolder.visible = false
       $Files/ResourceLabel.visible = false
@@ -90,10 +98,10 @@ func load_config():
             if config_file.has_section_key("config", k):
                 config[k] = config_file.get_value("config", k)
     $HideFinished.button_pressed = config.hide_finished
-    if config.get("data_file") and not autosave_audiostreamres:
+    if config.get("data_file") and $Files/OutputOption.selected != OutputFormat.GODOT_TRES:
         self.set_data_file(config.data_file)
         self.read_data_file()
-    if config.get("resource_folder") and autosave_audiostreamres:
+    if config.get("resource_folder") and $Files/OutputOption.selected == OutputFormat.GODOT_TRES:
         self.set_resource_folder(config.resource_folder)
     if config.get("project_folder"):
         self.set_project_folder(config.project_folder)
@@ -154,36 +162,12 @@ func play_sound():
 func save_sound():
     var idx = $SoundList.get_selected_items()[0]
     var filename = $SoundList.get_item_text(idx)
-    var path = $SoundList.get_item_metadata(idx)
     data[filename] = self.generate_sound_config()
     is_dirty = true
     $Files/Write.disabled = false
 
-    if autosave_audiostreamres:
-      is_dirty = false
-      var target_path = path.replace(config.source_folder, config.resource_folder).replace(".wav", ".tres")
-      print("Autosaving resource for %s at target path %s" % [filename, target_path])
-
-      if not DirAccess.dir_exists_absolute(target_path.get_base_dir()):
-        DirAccess.make_dir_recursive_absolute(target_path.get_base_dir())
-      var file = FileAccess.open(target_path, FileAccess.WRITE)
-      var ts = Time.get_datetime_dict_from_system()
-
-      for line in [
-          #"# Auto-generated resource from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
-          '[gd_resource type="Resource" load_steps=3 format=2]\n',
-          '[ext_resource path="res://resources/AudioStreamCallout.gd" type="Script" id=1]',
-          '[ext_resource path="%s" type="AudioStream" id=2]\n' % path.replace(config.project_folder, "res:/"),
-          '[resource]',
-          'script = ExtResource( 1 )',
-          'sound_file = ExtResource( 2 )',
-          'track = "%s"' % data[filename].track,
-          'gain = %s' % data[filename].volume
-      ]:
-          file.store_line(line)
-      for k in data[filename].ducking.keys():
-        file.store_line('%s = %s' % [k, data[filename].ducking[k]])
-      file.store_line("\n")
+    if autosave:
+      write_data_file()
 
     if config.hide_finished:
       $SoundList.remove_item(idx)
@@ -318,9 +302,9 @@ func parse_directory(path: String, target, accum = null):
         parse_directory("%s/%s" % [path, file_name], target, accum)
       else:
         if file_name.get_extension() in ["wav", "ogg", "mp3"]:
-          if hide_existing and not autosave_audiostreamres and data.has(file_name):
+          if hide_existing and not autosave and data.has(file_name):
             pass
-          elif hide_existing and autosave_audiostreamres and file_name in existing_files:
+          elif hide_existing and autosave and file_name in existing_files:
             pass
           else:
             if target == $SoundList and $Filter.text != "" and not file_name.contains($Filter.text):
@@ -351,6 +335,19 @@ func read_data_file():
         data[p] = data_file.SoundSettings.get(p)
 
 func write_data_file():
+  var output_format = $Files/OutputOption.selected
+  if output_format == OutputFormat.MPF_YAML:
+    push_warning("MPF Yaml output not yet supported.")
+  elif output_format == OutputFormat.GODOT_RESOURCE:
+    _write_godot_resource_file()
+  elif output_format == OutputFormat.GODOT_TRES:
+    _write_godot_tres()
+  else:
+    push_error("Unknown output format selection %d" % output_format)
+    return
+  is_dirty = false
+
+func _write_godot_resource_file():
     var file = FileAccess.open(config.data_file, FileAccess.WRITE)
     var ts = Time.get_datetime_dict_from_system()
     for line in [
@@ -362,8 +359,37 @@ func write_data_file():
     for k in data.keys():
       file.store_line('  "%s": %s,' % [k, data[k]])
     file.store_line("}\n")
-    is_dirty = false
     $Files/Write.disabled = true
+
+func _write_godot_tres():
+  var idx = $SoundList.get_selected_items()[0]
+  var filename = $SoundList.get_item_text(idx)
+  data[filename] = self.generate_sound_config()
+
+  var path = $SoundList.get_item_metadata(idx)
+  var target_path = path.replace(config.source_folder, config.resource_folder).replace(".wav", ".tres")
+  print("Autosaving resource for %s at target path %s" % [filename, target_path])
+
+  if not DirAccess.dir_exists_absolute(target_path.get_base_dir()):
+    DirAccess.make_dir_recursive_absolute(target_path.get_base_dir())
+  var file = FileAccess.open(target_path, FileAccess.WRITE)
+
+  for line in [
+      #"# Auto-generated resource from Duck It! %s:%s:%s %s/%s/%s" % [ts.hour, ts.minute, ts.second, ts.month, ts.day, ts.year],
+      '[gd_resource type="Resource" load_steps=3 format=2]\n',
+      '[ext_resource path="res://resources/AudioStreamCallout.gd" type="Script" id=1]',
+      '[ext_resource path="%s" type="AudioStream" id=2]\n' % path.replace(config.project_folder, "res:/"),
+      '[resource]',
+      'script = ExtResource( 1 )',
+      'sound_file = ExtResource( 2 )',
+      'track = "%s"' % data[filename].track,
+      'gain = %s' % data[filename].volume
+  ]:
+      file.store_line(line)
+  for k in data[filename].ducking.keys():
+    file.store_line('%s = %s' % [k, data[filename].ducking[k]])
+  file.store_line("\n")
+
 
 func _notification(what):
     if what == NOTIFICATION_WM_CLOSE_REQUEST:
