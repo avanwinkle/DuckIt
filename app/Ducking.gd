@@ -14,7 +14,7 @@ var is_dirty = false
 var autosave_audiostreamres = true
 var existing_files = []
 
-const max_folder_chars = 36
+const max_folder_chars = 64
 const default_settings = {
   "track": "voice",
   "volume": 1.0,
@@ -47,11 +47,11 @@ func _ready():
     $MusicList.empty_clicked.connect(self.stop_music)
     $Settings/Play.disabled = true
     $Settings/Save.disabled = true
-    $Write.disabled = true
+    $Files/Write.disabled = true
     $Settings.visible = false
     $Settings/Play.pressed.connect(self.play_sound)
     $Settings/Save.pressed.connect(self.save_sound)
-    $Write.pressed.connect(self.write_data_file)
+    $Files/Write.pressed.connect(self.write_data_file)
     $HideFinished.toggled.connect(self.toggle_hiding)
     $Filter.text_changed.connect(self.filter_sounds)
     $Settings/track.selected = 1
@@ -61,7 +61,8 @@ func _ready():
     if autosave_audiostreamres:
       $Files/DataFile.visible = false
       $Files/DataLabel.visible = false
-      $Write.visible = false
+      $Files/Write.visible = false
+      $Files/WriteSpacer.visible = false
     else:
       $Files/ResourceFolder.visible = false
       $Files/ResourceLabel.visible = false
@@ -156,7 +157,7 @@ func save_sound():
     var path = $SoundList.get_item_metadata(idx)
     data[filename] = self.generate_sound_config()
     is_dirty = true
-    $Write.disabled = false
+    $Files/Write.disabled = false
 
     if autosave_audiostreamres:
       is_dirty = false
@@ -362,7 +363,7 @@ func write_data_file():
       file.store_line('  "%s": %s,' % [k, data[k]])
     file.store_line("}\n")
     is_dirty = false
-    $Write.disabled = true
+    $Files/Write.disabled = true
 
 func _notification(what):
     if what == NOTIFICATION_WM_CLOSE_REQUEST:
