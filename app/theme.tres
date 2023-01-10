@@ -1,0 +1,5 @@
+[gd_resource type="Theme" format=3 uid="uid://c7bxif1073r5l"]
+
+[resource]
+Label/colors/font_color = Color(0.698039, 1, 0.827451, 1)
+TextEdit/colors/current_line_color = Color(0.333333, 0.458824, 0.392157, 0.8)

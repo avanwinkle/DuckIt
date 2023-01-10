@@ -6,7 +6,8 @@ var config = {
     "music_folder": null,
     "resource_folder": null,
     "project_folder": null,
-    "hide_finished": false
+    "hide_finished": false,
+    "output_format": 0
 }
 
 var data = {}
@@ -63,27 +64,15 @@ func _ready():
     $Settings/track.selected = 1
     $Settings/sample_rate.selected = 2
     $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
-
-    # Godot TRES always saves individual files
-    if $Files/OutputOption.selected == OutputFormat.GODOT_TRES:
-      $Files/DataFile.visible = false
-      $Files/DataLabel.visible = false
-      $Files/Write.visible = false
-      $Files/WriteSpacer.visible = false
-    # MPF Yaml and Godot Resource save a single file
-    else:
-      $Files/ResourceFolder.visible = false
-      $Files/ResourceLabel.visible = false
-      $Files/ProjectFolder.visible = false
-      $Files/ProjectLabel.visible = false
+    $Files/OutputOption.item_selected.connect(self.set_output_format)
 
     for c in $Settings.get_children():
         if "-" in c.name:
             c.pressed.connect(self.callv.bind("adjust_level", c.name.split("-")))
 
-    self.load_config()
+    initialize()
 
-func load_config():
+func initialize(_idx=-1):
     var config_file = ConfigFile.new()
 
     # Load data from a file.
@@ -97,7 +86,31 @@ func load_config():
         for k in config.keys():
             if config_file.has_section_key("config", k):
                 config[k] = config_file.get_value("config", k)
+
     $HideFinished.button_pressed = config.hide_finished
+    $Files/OutputOption.selected = config.output_format
+
+    # Godot TRES always saves individual files
+    if $Files/OutputOption.selected == OutputFormat.GODOT_TRES:
+      $Files/DataFile.visible = false
+      $Files/DataLabel.visible = false
+      $Files/Write.visible = false
+      $Files/WriteSpacer.visible = false
+      $Files/ResourceFolder.visible = true
+      $Files/ResourceLabel.visible = true
+      $Files/ProjectFolder.visible = true
+      $Files/ProjectLabel.visible = true
+    # MPF Yaml and Godot Resource save a single file
+    else:
+      $Files/ResourceFolder.visible = false
+      $Files/ResourceLabel.visible = false
+      $Files/ProjectFolder.visible = false
+      $Files/ProjectLabel.visible = false
+      $Files/DataFile.visible = true
+      $Files/DataLabel.visible = true
+      $Files/Write.visible = true
+      $Files/WriteSpacer.visible = true
+
     if config.get("data_file") and $Files/OutputOption.selected != OutputFormat.GODOT_TRES:
         self.set_data_file(config.data_file)
         self.read_data_file()
@@ -109,7 +122,7 @@ func load_config():
         self.set_source_folder(config.source_folder)
     if config.get("music_folder"):
         self.set_music_folder(config.music_folder)
-    print("Setup with config: %s" % config)
+    #print("Setup with config: %s" % config)
 
 func save_config():
     var config_file = ConfigFile.new()
@@ -123,7 +136,6 @@ func select_sound(index=-1):
     $Settings/Play.disabled = false
     $Settings/Save.disabled = false
     var filename = $SoundList.get_item_text(index)
-    print("Looking for filename %s in settings? %s" % [filename, data.has(filename)])
     var settings = data.get(filename, default_settings)
     $Settings/track.selected = 1 if settings.track == "callout" else 0
     $Settings/volume.text = str(settings.volume)
@@ -329,6 +341,11 @@ func adjust_level(target, direction):
 
 func read_data_file():
     print("Loading data file '%s'..." % config.data_file)
+    if not FileAccess.file_exists(config.data_file):
+      push_error("Unable to load data file %s." % config.data_file)
+      config.data_file = null
+      self.save_config()
+      return
     var data_file = load(config.data_file)
     if data_file:
       for p in data_file.SoundSettings.keys():
@@ -413,3 +430,8 @@ func clip_source_path(path):
 
 func set_sample_rate(idx):
   SoundPlayer.mix_rate = int($Settings/sample_rate.get_item_text(idx))
+
+func set_output_format(idx):
+  config.output_format = idx
+  save_config()
+  initialize()

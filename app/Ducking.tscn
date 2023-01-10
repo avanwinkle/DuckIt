@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://c06u82ov4p65c"]
+[gd_scene load_steps=4 format=3 uid="uid://c06u82ov4p65c"]
 
 [ext_resource type="Script" path="res://Ducking.gd" id="1_1pden"]
+[ext_resource type="Theme" uid="uid://c7bxif1073r5l" path="res://theme.tres" id="1_lm3fm"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_b8mgw"]
 
 [node name="Ducking" type="Control"]
 layout_mode = 3
@@ -9,9 +12,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_lm3fm")
 script = ExtResource("1_1pden")
 metadata/_edit_vertical_guides_ = [400.0, 440.0, 21.0, 1130.0, 794.0]
 metadata/_edit_horizontal_guides_ = [630.0, 50.0, 493.0]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource("CanvasItemMaterial_b8mgw")
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+color = Color(0.0431373, 0.321569, 0.235294, 1)
 
 [node name="SoundList" type="ItemList" parent="."]
 layout_mode = 0
@@ -21,6 +32,7 @@ offset_right = 398.0
 offset_bottom = 598.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="MusicList" type="ItemList" parent="."]
 layout_mode = 0
@@ -30,6 +42,7 @@ offset_right = 1128.0
 offset_bottom = 187.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="Settings" type="GridContainer" parent="."]
 layout_mode = 0
@@ -37,16 +50,19 @@ offset_left = 441.0
 offset_top = 50.0
 offset_right = 687.0
 offset_bottom = 358.0
+theme = ExtResource("1_lm3fm")
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 7
 columns = 4
 
 [node name="Label8" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Sample Rate"
 
 [node name="sample_rate" type="OptionButton" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 item_count = 3
 popup/item_0/text = "32000"
 popup/item_0/id = 0
@@ -57,30 +73,38 @@ popup/item_2/id = 2
 
 [node name="blank3" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="blank4" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="HSeparator5" type="HSeparator" parent="Settings"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="HSeparator6" type="HSeparator" parent="Settings"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="Control" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Control2" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Label6" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Track"
 
 [node name="track" type="OptionButton" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 item_count = 2
 popup/item_0/text = "voice"
 popup/item_0/id = 0
@@ -89,138 +113,170 @@ popup/item_1/id = 1
 
 [node name="blank" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="blank2" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Label7" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Volume"
 
 [node name="volume" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "1.0"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="volume-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="volume-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="HSeparator" type="HSeparator" parent="Settings"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="HSeparator2" type="HSeparator" parent="Settings"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("1_lm3fm")
 
 [node name="Control3" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Control4" type="Control" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Label" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Delay"
 
 [node name="delay" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "0.05"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="delay-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="delay-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="Label3" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Attack"
 
 [node name="attack" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "1"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="attack-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="attack-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="Label2" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Attenuation"
 
 [node name="attenuation" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "8.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="attenuation-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="attenuation-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="Label4" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Release Point"
 
 [node name="release_point" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "0.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="release_point-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="release_point-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="Label5" type="Label" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Release "
 
 [node name="release" type="LineEdit" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "0.5"
 context_menu_enabled = false
 virtual_keyboard_enabled = false
 
 [node name="release-up" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐃ"
 
 [node name="release-down" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "ᐁ"
 
 [node name="Play" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "PLAY"
 
 [node name="Save" type="Button" parent="Settings"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "SAVE"
 
 [node name="Files" type="GridContainer" parent="."]
@@ -229,15 +285,18 @@ offset_left = 440.0
 offset_top = 458.0
 offset_right = 1129.0
 offset_bottom = 699.0
+theme = ExtResource("1_lm3fm")
 columns = 2
 
 [node name="OutputLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "Output Format:"
 
 [node name="OutputOption" type="OptionButton" parent="Files"]
 layout_mode = 2
 size_flags_horizontal = 0
+theme = ExtResource("1_lm3fm")
 item_count = 3
 selected = 2
 popup/item_0/text = "MPF Yaml"
@@ -249,54 +308,76 @@ popup/item_2/id = 2
 
 [node name="SourceLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 12
 text = "Source Folder"
 
 [node name="SourceFolder" type="Button" parent="Files"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 11
 text = "None"
 alignment = 0
 
 [node name="MusicLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 12
 text = "Music Folder"
 
 [node name="MusicFolder" type="Button" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 11
 text = "None"
 alignment = 0
 
 [node name="DataLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 12
 text = "Data File"
 
 [node name="DataFile" type="Button" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 11
 text = "None"
 alignment = 0
 
 [node name="WriteSpacer" type="Control" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 
 [node name="Write" type="Button" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
 text = "WRITE DATA FILE"
 
 [node name="ResourceLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 12
 text = "Resource Folder"
 
 [node name="ResourceFolder" type="Button" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 11
 text = "None"
 alignment = 0
 
 [node name="ProjectLabel" type="Label" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 12
 text = "Project Root"
 
 [node name="ProjectFolder" type="Button" parent="Files"]
 layout_mode = 2
+theme = ExtResource("1_lm3fm")
+theme_override_font_sizes/font_size = 11
 text = "None"
 alignment = 0
 
@@ -306,6 +387,7 @@ offset_left = 16.0
 offset_top = 600.0
 offset_right = 406.0
 offset_bottom = 631.0
+theme = ExtResource("1_lm3fm")
 button_pressed = true
 text = "Hide sound files with saved settings"
 
@@ -315,5 +397,6 @@ offset_left = 22.0
 offset_top = 7.0
 offset_right = 399.0
 offset_bottom = 38.0
+theme = ExtResource("1_lm3fm")
 placeholder_text = "Filter tracks..."
 clear_button_enabled = true
