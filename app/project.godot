@@ -22,8 +22,8 @@ SoundPlayer="*res://SoundPlayer.tscn"
 
 [display]
 
-window/dpi/allow_hidpi=false
 window/stretch/mode="canvas_items"
+window/dpi/allow_hidpi=false
 
 [rendering]
 

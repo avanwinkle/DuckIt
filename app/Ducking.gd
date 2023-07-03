@@ -50,8 +50,7 @@ func _ready():
     $Files/DataFile.pressed.connect(self.set_data_file)
     $SoundList.item_selected.connect(self.select_sound)
     $SoundList.empty_clicked.connect(self.deselect_sound)
-    $MusicList.item_selected.connect(self.play_music)
-    $MusicList.empty_clicked.connect(self.stop_music)
+    $MusicList.item_selected.connect(self.music_selected)
     $Settings/Play.disabled = true
     $Settings/Save.disabled = true
     $Files/Write.disabled = true
@@ -62,9 +61,13 @@ func _ready():
     $HideFinished.toggled.connect(self.toggle_hiding)
     $Filter.text_changed.connect(self.filter_sounds)
     $Settings/track.selected = 1
-    $Settings/sample_rate.selected = 2
+    $Settings/sample_rate.selected = 1
     $Settings/sample_rate.item_selected.connect(self.set_sample_rate)
     $Files/OutputOption.item_selected.connect(self.set_output_format)
+    $MusicControls/Play.pressed.connect(self.play_music)
+    $MusicControls/Stop.pressed.connect(self.stop_music)
+    $MusicControls/Play.disabled = true
+    $MusicControls/Stop.disabled = true
 
     for c in $Settings.get_children():
         if "-" in c.name:
@@ -146,29 +149,31 @@ func select_sound(index=-1):
     $Settings/release.text = str(settings.ducking.release)
     $Settings.visible = true
 
-func deselect_sound(_position, _idx):
+func deselect_sound(_position=null, _idx=null):
     $Settings.visible = false
     $SoundList.deselect_all()
 
 func filter_sounds(_text):
     self.set_source_folder(config.source_folder)
 
-func play_music(name):
+func music_selected(_file=null):
+    $MusicControls/Play.disabled = false
+
+func play_music(_file=null):
     var idx = $MusicList.get_selected_items()[0]
     var path = $MusicList.get_item_metadata(idx)
-    print("Playing music at path %s" % path)
     SoundPlayer.play(path, "music",
         { "fade_in": 0.5, "fade_out": 1, "loop": true }, true)
+    $MusicControls/Stop.disabled = false
 
-func stop_music(_position, _idx):
-    $MusicList.deselect_all()
+func stop_music(_pos=null, _idx=null):
     SoundPlayer.stop_all(0.1)
+    $MusicControls/Stop.disabled = true
+    $MusicControls/Play.disabled = false
 
 func play_sound():
     var idx = $SoundList.get_selected_items()[0]
     var path = $SoundList.get_item_metadata(idx)
-    print("Playing sound at %s" % path)
-
     SoundPlayer.play("%s" % path, "voice", self.generate_sound_config(), true)
 
 func save_sound():
@@ -241,12 +246,13 @@ func set_source_folder(path=""):
         self.save_config()
     if config.source_folder:
       $SoundList.clear()
+      # Reset the hash
+      $SoundList.set_meta("hash", -1)
       self.parse_directory(path, $SoundList)
       $Files/SourceFolder.text = self.clip_source_path(path)
 
 func toggle_hiding(is_down):
-    $SoundList.clear()
-    self.parse_directory(config.source_folder, $SoundList)
+    self.parse_directory(config.source_folder, $SoundList, null, true)
     config.hide_finished = is_down
     self.save_config()
 
@@ -299,7 +305,7 @@ func set_data_file(path=""):
     if config.data_file:
       $Files/DataFile.text = self.clip_source_path(path)
 
-func parse_directory(path: String, target, accum = null):
+func parse_directory(path: String, target, accum = null, clear_on_change = false, is_recursive = false):
     var assets = []
     var hide_existing = target and target == $SoundList and $HideFinished.button_pressed
     #print("Parsing director with path %s, hide_existing is %s" % [path, hide_existing])
@@ -311,7 +317,9 @@ func parse_directory(path: String, target, accum = null):
     var file_name = dir.get_next()
     while file_name != "":
       if dir.current_is_dir():
-        parse_directory("%s/%s" % [path, file_name], target, accum)
+        var recur = parse_directory("%s/%s" % [path, file_name], target, accum, false, true)
+        if recur and target == $SoundList:
+          assets.append_array(recur)
       else:
         if file_name.get_extension() in ["wav", "ogg", "mp3"]:
           if hide_existing and not autosave and data.has(file_name):
@@ -326,11 +334,26 @@ func parse_directory(path: String, target, accum = null):
         elif file_name.get_extension() == "tres" and accum != null:
           accum.append(file_name.replace(".tres", ".wav"))
       file_name = dir.get_next()
-    for asset in assets:
-      if target:
-        #print("Adding asset '%s'" % asset.name)
-        var idx = target.add_item(asset.name)
-        target.set_item_metadata(idx, asset.path)
+
+    # If there's no target for rendering the list, no further actions
+    # If we are in a recursion, also no further actions
+    if not target:
+      return
+    if is_recursive:
+      return assets
+
+    # Sort by filename
+    assets.sort_custom(func(a, b): return a.name < b.name)
+    var old_hash = target.get_meta("hash", -1)
+    var new_hash = assets.hash()
+    if old_hash != new_hash:
+      target.set_meta("hash", new_hash)
+      if clear_on_change:
+        self.deselect_sound()
+        target.clear()
+      for asset in assets:
+          var idx = target.add_item(asset.name)
+          target.set_item_metadata(idx, asset.path)
 
 func adjust_level(target, direction):
     var n = $Settings.get_node(target)
@@ -385,7 +408,8 @@ func _write_mpf_yaml_file():
       file.store_line(line)
     for d in data[k].ducking.keys():
       file.store_line("      %s: %0.2f" % [d, data[k].ducking[d]])
-  file.store_line("\n")
+  # Each store_line includes a linefeed, so double makes linter unhappy
+  #file.store_line("\n")
   $Files/Write.disabled = true
 
 func _write_godot_resource_file():
@@ -446,6 +470,8 @@ func _notification(what):
         dialog.popup_centered()
       else:
         get_tree().quit() # default behavior
+    elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+        self.parse_directory(config.source_folder, $SoundList, null, true)
 
 func clip_source_path(path):
   if path.length() <= max_folder_chars:

@@ -44,6 +44,30 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource("1_lm3fm")
 
+[node name="MusicControls" type="GridContainer" parent="."]
+layout_mode = 2
+offset_left = 795.0
+offset_top = 200.0
+offset_right = 1128.0
+offset_bottom = 239.0
+columns = 3
+
+[node name="Play" type="Button" parent="MusicControls"]
+custom_minimum_size = Vector2(100, 2.08165e-12)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Play"
+
+[node name="Control" type="Control" parent="MusicControls"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Stop" type="Button" parent="MusicControls"]
+custom_minimum_size = Vector2(100, 2.08165e-12)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stop"
+
 [node name="Settings" type="GridContainer" parent="."]
 layout_mode = 0
 offset_left = 441.0
